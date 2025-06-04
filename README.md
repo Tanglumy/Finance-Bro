@@ -7,3 +7,5 @@ your finance bro for trading and investing
 4. Model access using formula langauge
 5. Excutive Agent to buy and agent via IBKR
 6. Rethink the gain via Reasoning model, generate the reward from capital markets.
+## System Design
+## WIP
