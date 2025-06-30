@@ -1,11 +1,96 @@
 # mypy: disable - error - code = "no-untyped-def,misc"
 import pathlib
-from fastapi import FastAPI, Request, Response
+from typing import Any, Dict, List
+from datetime import datetime
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 import fastapi.exceptions
 
+from langchain_core.messages import HumanMessage
+
+from .graph import create_event_agent_graph, initialize_event_agent_state
+from .configuration import EventAgentConfiguration
+
+
+# Request/Response models
+class EventAgentRequest(BaseModel):
+    message: str
+    portfolio_data: Dict[str, Any] = {}
+    risk_tolerance: str = "moderate"
+    investment_horizon: str = "medium"
+
+
+class EventAgentResponse(BaseModel):
+    analysis: str
+    market_events: List[Dict[str, Any]]
+    trading_signals: List[Dict[str, Any]]
+    portfolio_recommendations: List[Dict[str, Any]]
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan."""
+    # Initialize the EventAgent graph
+    app.state.event_agent_graph = create_event_agent_graph()
+    yield
+
+
 # Define the FastAPI app
-app = FastAPI()
+app = FastAPI(
+    title="Event Agent API",
+    description="API for event-driven financial analysis and trading decisions",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+
+@app.post("/analyze", response_model=EventAgentResponse)
+async def analyze_market_events(request: EventAgentRequest):
+    """Analyze market events and generate trading recommendations."""
+    try:
+        # Initialize state
+        initial_state = initialize_event_agent_state(
+            user_message=request.message,
+            portfolio_data=request.portfolio_data,
+            risk_tolerance=request.risk_tolerance,
+            investment_horizon=request.investment_horizon
+        )
+        
+        # Run the EventAgent graph
+        config = {"configurable": {}}
+        final_state = await app.state.event_agent_graph.ainvoke(initial_state, config)
+        
+        # Extract the final analysis from messages
+        analysis = ""
+        if final_state.get("messages"):
+            last_message = final_state["messages"][-1]
+            analysis = last_message.content if hasattr(last_message, 'content') else str(last_message)
+        
+        return EventAgentResponse(
+            analysis=analysis,
+            market_events=final_state.get("market_events", []),
+            trading_signals=final_state.get("financial_signals", []),
+            portfolio_recommendations=final_state.get("portfolio_analysis", [])
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+
+@app.get("/config")
+async def get_configuration():
+    """Get current EventAgent configuration."""
+    config = EventAgentConfiguration()
+    return config.model_dump()
 
 
 def create_frontend_router(build_dir="../frontend/dist"):
