@@ -94,3 +94,5 @@ User Context:
 
 Summaries:
 {summaries}"""
+
+main

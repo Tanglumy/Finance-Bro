@@ -7,21 +7,21 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode
 
-from .state import (
+from EventAgent.state import (
     EventAgentState,
     EventDetectionState,
     SignalGenerationState,
     PortfolioAnalysisState,
 )
-from .configuration import EventAgentConfiguration
-from .prompts import (
+from EventAgent.configuration import EventAgentConfiguration
+from EventAgent.prompts import (
     EVENT_DETECTION_PROMPT,
     SIGNAL_GENERATION_PROMPT,
     PORTFOLIO_ANALYSIS_PROMPT,
     INVESTMENT_REASONING_PROMPT,
     get_current_date,
 )
-from .tools_and_schemas import FINANCIAL_TOOLS
+from EventAgent.tools_and_schemas import FINANCIAL_TOOLS
 
 
 def create_event_agent_graph():

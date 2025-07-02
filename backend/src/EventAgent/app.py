@@ -11,8 +11,8 @@ import fastapi.exceptions
 
 from langchain_core.messages import HumanMessage
 
-from .graph import create_event_agent_graph, initialize_event_agent_state
-from .configuration import EventAgentConfiguration
+from EventAgent.graph import create_event_agent_graph, initialize_event_agent_state
+from EventAgent.configuration import EventAgentConfiguration
 
 
 # Request/Response models

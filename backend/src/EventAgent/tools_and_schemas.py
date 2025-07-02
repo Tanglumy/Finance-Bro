@@ -57,7 +57,7 @@ async def get_stock_price(symbol: str) -> Dict[str, Any]:
     Returns:
         Dictionary with stock price information
     """
-    from .financial_data_service import get_financial_service
+    from EventAgent.financial_data_service import get_financial_service
     
     async with await get_financial_service() as service:
         stock_data = await service.get_stock_quote(symbol)
@@ -93,7 +93,7 @@ async def get_market_news(
     Returns:
         List of news articles with metadata
     """
-    from .financial_data_service import get_financial_service
+    from EventAgent.financial_data_service import get_financial_service
     
     async with await get_financial_service() as service:
         news_articles = await service.get_market_news(symbols, hours_back, limit)
@@ -123,7 +123,7 @@ async def get_economic_calendar(days_ahead: int = 7) -> List[Dict[str, Any]]:
     Returns:
         List of economic events and indicators
     """
-    from .financial_data_service import get_financial_service
+    from EventAgent.financial_data_service import get_financial_service
     
     async with await get_financial_service() as service:
         indicators = await service.get_economic_calendar(days_ahead)
@@ -158,7 +158,7 @@ async def calculate_technical_indicators(
     Returns:
         List of technical indicator values and signals
     """
-    from .financial_data_service import get_financial_service
+    from EventAgent.financial_data_service import get_financial_service
     
     async with await get_financial_service() as service:
         technical_data = await service.get_technical_indicators(symbol, indicators, period)
@@ -203,7 +203,7 @@ async def analyze_market_sentiment(
     Returns:
         Market sentiment analysis results
     """
-    from .financial_data_service import get_financial_service
+    from EventAgent.financial_data_service import get_financial_service
     
     async with await get_financial_service() as service:
         sentiment_data = await service.analyze_market_sentiment()
@@ -254,8 +254,8 @@ async def get_portfolio_metrics(portfolio_data: Dict[str, Any]) -> Dict[str, Any
     Returns:
         Portfolio metrics and analysis
     """
-    from .portfolio_manager import get_portfolio_manager
-    from .financial_data_service import get_financial_service
+    from EventAgent.portfolio_manager import get_portfolio_manager
+    from EventAgent.financial_data_service import get_financial_service
     
     portfolio_manager = get_portfolio_manager()
     
@@ -333,7 +333,7 @@ async def add_portfolio_position(
     Returns:
         Updated portfolio summary
     """
-    from .portfolio_manager import get_portfolio_manager
+    from EventAgent.portfolio_manager import get_portfolio_manager
     
     portfolio_manager = get_portfolio_manager()
     portfolio_manager.add_position(symbol, quantity, price, sector)
@@ -367,7 +367,7 @@ async def remove_portfolio_position(
     Returns:
         Updated portfolio summary
     """
-    from .portfolio_manager import get_portfolio_manager
+    from EventAgent.portfolio_manager import get_portfolio_manager
     
     portfolio_manager = get_portfolio_manager()
     success = portfolio_manager.remove_position(symbol, quantity, price)
@@ -409,8 +409,8 @@ async def analyze_time_series(
     Returns:
         Time series analysis results
     """
-    from .time_series_analysis import get_time_series_analyzer
-    from .financial_data_service import get_financial_service
+    from EventAgent.time_series_analysis import get_time_series_analyzer
+    from EventAgent.financial_data_service import get_financial_service
     import pandas as pd
     import numpy as np
     
@@ -520,8 +520,8 @@ async def execute_trading_signal(
     Returns:
         Execution result and status
     """
-    from .executive_agent import get_executive_agent
-    from .portfolio_manager import get_portfolio_manager
+    from EventAgent.executive_agent import get_executive_agent
+    from EventAgent.portfolio_manager import get_portfolio_manager
     
     executive_agent = get_executive_agent(paper_trading=True)
     portfolio_manager = get_portfolio_manager()
@@ -568,7 +568,7 @@ async def get_trading_status() -> Dict[str, Any]:
     Returns:
         Trading agent status and performance metrics
     """
-    from .executive_agent import get_executive_agent
+    from EventAgent.executive_agent import get_executive_agent
     
     executive_agent = get_executive_agent(paper_trading=True)
     status = await executive_agent.get_execution_status()
@@ -587,7 +587,7 @@ async def emergency_trading_stop() -> Dict[str, Any]:
     Returns:
         Emergency stop confirmation and cancelled orders
     """
-    from .executive_agent import get_executive_agent
+    from EventAgent.executive_agent import get_executive_agent
     
     executive_agent = get_executive_agent(paper_trading=True)
     stop_result = await executive_agent.emergency_stop()
@@ -617,7 +617,7 @@ async def update_risk_parameters(
     Returns:
         Updated risk parameters
     """
-    from .executive_agent import get_executive_agent, RiskParameters
+    from EventAgent.executive_agent import get_executive_agent, RiskParameters
     
     executive_agent = get_executive_agent(paper_trading=True)
     
