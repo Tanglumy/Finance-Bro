@@ -34,6 +34,15 @@ except ImportError as e:
     logger.warning(f"TS Agent not available: {e}")
     TS_AGENT_AVAILABLE = False
 
+# Import Formula Engine
+try:
+    from src.formula_engine import FormulaEngine
+    FORMULA_ENGINE_AVAILABLE = True
+    formula_engine = FormulaEngine()
+except ImportError as e:
+    logger.warning(f"Formula Engine not available: {e}")
+    FORMULA_ENGINE_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -109,6 +118,29 @@ class RiskParametersUpdate(BaseModel):
     take_profit_pct: Optional[float] = Field(None, ge=0.05, le=2.0)
     max_daily_loss_pct: Optional[float] = Field(None, ge=0.01, le=0.2)
 
+# Formula Engine Models
+class FormulaModel(BaseModel):
+    name: str
+    formula: str
+    description: str = ""
+    variables: Dict[str, Any] = {}
+
+class FormulaEvaluationRequest(BaseModel):
+    model_name: str
+    data: Dict[str, Any]  # Market data as dictionary
+    variables: Dict[str, Any] = {}
+
+class BacktestRequest(BaseModel):
+    model_name: str
+    data: Dict[str, Any]  # Historical data as dictionary
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    initial_capital: float = 100000
+    commission: float = 0.001
+
+class FormulaValidationRequest(BaseModel):
+    formula: str
+
 # WebSocket connection manager
 class ConnectionManager:
     def __init__(self):
@@ -160,7 +192,18 @@ async def lifespan(app: FastAPI):
 # Create FastAPI app
 app = FastAPI(
     title="Finance Bro API",
-    description="Comprehensive API for financial analysis and trading",
+    description="""
+    Comprehensive API for financial analysis and trading.
+    
+    Features:
+    - Portfolio management and tracking
+    - Real-time market data and news
+    - Time series analysis and forecasting
+    - Formula-based modeling with custom DSL
+    - Backtesting and performance analysis
+    - Risk management and alerts
+    - WebSocket real-time updates
+    """,
     version="2.0.0",
     lifespan=lifespan,
 )
@@ -1104,6 +1147,199 @@ async def get_time_series_analysis(symbol: str, analysis_type: str = "trend", pe
         return analysis_result
     except Exception as e:
         logger.error(f"Time series analysis error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Formula Engine Endpoints
+@app.get("/formula/functions")
+async def get_formula_functions():
+    """Get available formula functions."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        functions = formula_engine.get_available_functions()
+        return {"functions": functions}
+    except Exception as e:
+        logger.error(f"Error getting formula functions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/formula/functions/{function_name}")
+async def get_function_info(function_name: str):
+    """Get information about a specific function."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        func_info = formula_engine.get_function_info(function_name)
+        return func_info
+    except Exception as e:
+        logger.error(f"Error getting function info: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/formula/validate")
+async def validate_formula(request: FormulaValidationRequest):
+    """Validate a formula."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        validation_result = formula_engine.evaluator.validate_formula(request.formula)
+        return validation_result
+    except Exception as e:
+        logger.error(f"Formula validation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/formula/models")
+async def create_formula_model(model: FormulaModel):
+    """Create a new formula model."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        created_model = formula_engine.create_model(
+            model.name, 
+            model.formula, 
+            model.description, 
+            model.variables
+        )
+        return created_model.to_dict()
+    except Exception as e:
+        logger.error(f"Error creating formula model: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/formula/models")
+async def list_formula_models():
+    """List all formula models."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        models = formula_engine.list_models()
+        return {"models": models}
+    except Exception as e:
+        logger.error(f"Error listing formula models: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/formula/models/{model_name}")
+async def get_formula_model(model_name: str):
+    """Get a specific formula model."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        model = formula_engine.get_model(model_name)
+        if not model:
+            raise HTTPException(status_code=404, detail="Model not found")
+        return model.to_dict()
+    except Exception as e:
+        logger.error(f"Error getting formula model: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/formula/models/{model_name}")
+async def delete_formula_model(model_name: str):
+    """Delete a formula model."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        success = formula_engine.delete_model(model_name)
+        if not success:
+            raise HTTPException(status_code=404, detail="Model not found")
+        return {"message": f"Model {model_name} deleted successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting formula model: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/formula/evaluate")
+async def evaluate_formula(request: FormulaEvaluationRequest):
+    """Evaluate a formula model against market data."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        # Convert data dictionary to DataFrame
+        import pandas as pd
+        data = pd.DataFrame(request.data)
+        
+        # Evaluate model
+        result = formula_engine.evaluate_model(request.model_name, data, request.variables)
+        
+        # Convert result to serializable format
+        if hasattr(result, 'to_dict'):
+            result_data = result.to_dict()
+        elif hasattr(result, 'tolist'):
+            result_data = result.tolist()
+        else:
+            result_data = str(result)
+        
+        return {"result": result_data}
+    except Exception as e:
+        logger.error(f"Formula evaluation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/formula/backtest")
+async def backtest_formula(request: BacktestRequest):
+    """Backtest a formula model."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        # Convert data dictionary to DataFrame
+        import pandas as pd
+        data = pd.DataFrame(request.data)
+        
+        # Run backtest
+        backtest_results = formula_engine.backtest_model(
+            request.model_name,
+            data,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            initial_capital=request.initial_capital,
+            commission=request.commission
+        )
+        
+        return backtest_results
+    except Exception as e:
+        logger.error(f"Backtest error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/formula/models/{model_name}/performance")
+async def get_model_performance(model_name: str):
+    """Get performance metrics for a model."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        performance = formula_engine.get_model_performance(model_name)
+        return performance
+    except Exception as e:
+        logger.error(f"Error getting model performance: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/formula/samples")
+async def get_sample_formulas():
+    """Get sample formulas for demonstration."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        samples = formula_engine.create_sample_formulas()
+        return {"samples": samples}
+    except Exception as e:
+        logger.error(f"Error getting sample formulas: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/formula/engine/stats")
+async def get_engine_stats():
+    """Get formula engine statistics."""
+    if not FORMULA_ENGINE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Formula Engine not available")
+    
+    try:
+        stats = formula_engine.get_engine_stats()
+        return stats
+    except Exception as e:
+        logger.error(f"Error getting engine stats: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

@@ -61,4 +61,39 @@ help:
 	@echo 'tests                        - run unit tests'
 	@echo 'test TEST_FILE=<test_file>   - run all tests in file'
 	@echo 'test_watch                   - run unit tests in watch mode'
+	@echo 'test_comprehensive           - run comprehensive test suite'
+	@echo 'test_coverage                - run tests with coverage'
+	@echo 'test_api                     - run API tests'
+	@echo 'test_formula                 - run formula engine tests'
+	@echo 'test_integration             - run integration tests'
+
+# Enhanced test commands
+test_comprehensive:
+	python run_tests.py --verbose
+
+test_coverage:
+	python run_tests.py --coverage --html-report --verbose
+
+test_api:
+	python run_tests.py --api --verbose
+
+test_formula:
+	python run_tests.py --formula --verbose
+
+test_integration:
+	python run_tests.py --integration --verbose
+
+test_unit:
+	python run_tests.py --unit --verbose
+
+test_parallel:
+	python run_tests.py --parallel 4 --verbose
+
+test_slow:
+	python run_tests.py --slow --verbose
+
+clean_test:
+	rm -rf htmlcov/ .coverage coverage.xml .pytest_cache/
+	find . -name "*.pyc" -delete
+	find . -name "__pycache__" -type d -exec rm -rf {} +
 

@@ -1,0 +1,67 @@
+# Core LangGraph and LangChain dependencies
+langgraph>=0.2.6
+langchain>=0.3.19
+langchain-google-genai
+python-dotenv>=1.0.1
+langgraph-sdk>=0.1.57
+langgraph-cli
+langgraph-api
+
+# Web framework
+fastapi
+google-genai
+
+# HTTP and async libraries
+aiohttp>=3.8.0
+requests>=2.28.0
+
+# Data processing
+pandas>=1.5.0
+numpy>=1.24.0
+python-dateutil>=2.8.0
+
+# Financial data providers
+yfinance>=0.2.0
+alpha-vantage>=2.3.0
+newsapi-python>=0.2.0
+
+# Time Series and ML Dependencies
+nixtla>=0.5.0
+nixtlats>=0.1.0
+gluonts>=0.15.0
+mxnet>=1.9.1
+torch>=2.0.0
+pytorch-lightning>=2.0.0
+statsforecast>=1.6.0
+neuralforecast>=1.6.0
+mlforecast>=0.10.0
+pandas-ta>=0.3.14b
+scikit-learn>=1.3.0
+scipy>=1.10.0
+ta-lib>=0.4.25
+plotly>=5.15.0
+
+# IBKR Integration
+ibapi>=9.81.1
+ib-insync>=0.9.86
+
+# Additional Financial Data
+quandl>=3.7.0
+fredapi>=0.5.0
+ccxt>=4.1.0
+
+# Development dependencies (optional)
+# mypy>=1.11.1
+# ruff>=0.6.1
+# langgraph-cli[inmem]>=0.1.71
+# pytest>=8.3.5
+
+# Testing dependencies
+pytest>=8.3.5
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+httpx>=0.24.0
+pytest-xdist>=3.3.0
+pytest-timeout>=2.1.0
+coverage>=7.2.0
