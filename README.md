@@ -413,19 +413,19 @@ We welcome contributions from the community! Here's how to get started:
 
 ## 📈 Roadmap
 
-### Q1 2024
+### Q1 2025
 - [ ] **Enhanced Formula Language**: More advanced functions and operators
 - [ ] **Live Trading Integration**: Real-time broker connectivity
 - [ ] **Mobile Application**: React Native app for iOS/Android
 - [ ] **Advanced Risk Management**: Portfolio-level risk controls
 
-### Q2 2024
+### Q2 2025
 - [ ] **Multi-asset Support**: Crypto, forex, commodities, options
 - [ ] **Social Trading**: Community signals and strategy sharing
 - [ ] **Advanced Analytics**: Sophisticated performance attribution
 - [ ] **Paper Trading Competition**: Gamified trading environment
 
-### Q3 2024
+### Q3 2025
 - [ ] **Institutional Features**: Multi-user support and permissions
 - [ ] **Advanced ML Models**: Transformer-based price prediction
 - [ ] **API Marketplace**: Third-party strategy integrations
@@ -445,26 +445,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 🙏 Acknowledgments
-
-- **Nixtla** for TimeGPT foundation models
-- **LangGraph** for agent orchestration framework
-- **FastAPI** for high-performance web framework
-- **React** and **TypeScript** for modern frontend
-- **Docker** for containerization
-- **Open Source Community** for inspiration and libraries
-
----
-
-## 📞 Support
-
-- **Documentation**: [API Docs](http://localhost:8001/docs)
-- **Issues**: [GitHub Issues](https://github.com/anthropics/claude-code/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/anthropics/claude-code/discussions)
-- **Email**: finance-bro@example.com
-
----
-
-**Built with ❤️ by the Finance-Bro team**
 
 *Making quantitative finance accessible to everyone*
