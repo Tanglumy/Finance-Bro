@@ -1,0 +1,2 @@
+regex:sk-[A-Za-z0-9]{20,}==>OPENAI_API_KEY_REDACTED
+regex:rk-[A-Za-z0-9]{20,}==>OPENAI_API_KEY_REDACTED
