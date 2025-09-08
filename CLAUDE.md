@@ -95,8 +95,6 @@ User Request → comprehensive_api.py → Agent Router → Specific Agent → Re
 Create `.env` file in backend directory:
 ```bash
 # OpenAI API Configuration (REQUIRED)
-OPENAI_API_KEY=OPENAI_API_KEY_REDACTED
-OPENAI_MODEL=gpt-4-turbo-preview  # Using GPT-4 Turbo (GPT-5 fallback configured)
 
 # Other API Keys (optional)
 NIXTLA_API_KEY=your_key        # For TimeGPT forecasting
