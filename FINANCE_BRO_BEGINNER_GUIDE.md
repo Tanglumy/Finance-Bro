@@ -64,15 +64,15 @@ graph TB
 
 ### 📦 **Component Overview**
 
-| Component | Purpose | Technology |
-|-----------|---------|------------|
-| **Frontend** | User Interface | React + TypeScript + shadcn/ui |
-| **Backend API** | API Server | FastAPI + Python |
-| **Event Agent** | Market Analysis | LangChain + LLMs |
-| **Time Series Agent** | Forecasting | Nixtla + GluonTS + ML |
-| **Research Agent** | Fundamental Analysis | Web Scraping + NLP |
-| **Reward Agent** | Strategy Optimization | Reinforcement Learning |
-| **Data Layer** | Market Data | Multiple APIs + IBKR |
+| Component             | Purpose               | Technology                     |
+| --------------------- | --------------------- | ------------------------------ |
+| **Frontend**          | User Interface        | React + TypeScript + shadcn/ui |
+| **Backend API**       | API Server            | FastAPI + Python               |
+| **Event Agent**       | Market Analysis       | LangChain + LLMs               |
+| **Time Series Agent** | Forecasting           | Nixtla + GluonTS + ML          |
+| **Research Agent**    | Fundamental Analysis  | Web Scraping + NLP             |
+| **Reward Agent**      | Strategy Optimization | Reinforcement Learning         |
+| **Data Layer**        | Market Data           | Multiple APIs + IBKR           |
 
 ---
 
@@ -1174,30 +1174,27 @@ npm run format
 - **Discord**: Real-time chat with other users
 - **Documentation**: This guide and API docs
 
-### 📧 **Contact**
-- **Email**: support@finance-bro.com
-- **Twitter**: @FinanceBroAI
-- **LinkedIn**: Finance-Bro Official
+
 
 ---
 
 ## 🔮 Future Roadmap
 
-### 🚀 **Short Term (Q1 2024)**
+### 🚀 **Short Term (Q1 2025)**
 - [ ] **Mobile App**: React Native mobile application
 - [ ] **Advanced Charts**: TradingView-style charting
 - [ ] **Options Trading**: Options pricing and strategies
 - [ ] **Crypto Support**: Cryptocurrency analysis
 - [ ] **Docker Deployment**: Complete containerization
 
-### 🌟 **Medium Term (Q2-Q3 2024)**
+### 🌟 **Medium Term (Q2-Q3 2025)**
 - [ ] **Multi-Broker Support**: TD Ameritrade, E*TRADE integration
 - [ ] **Social Trading**: Follow and copy successful traders
 - [ ] **Advanced ML**: Transformer-based prediction models
 - [ ] **Backtesting Engine**: Historical strategy testing
 - [ ] **Risk Analytics**: Advanced VaR and stress testing
 
-### 🌍 **Long Term (Q4 2024+)**
+### 🌍 **Long Term (Q4 2025+)**
 - [ ] **Global Markets**: International stock markets
 - [ ] **Alternative Data**: Satellite, social media, economic data
 - [ ] **Regulatory Compliance**: SEC, FINRA compliance features
@@ -1209,7 +1206,3 @@ npm run format
 **🎉 Congratulations!** You now have a comprehensive understanding of the Finance-Bro platform. Start with the Quick Start guide and gradually explore more advanced features as you become comfortable with the system.
 
 **Happy Trading! 📈💰**
-
----
-
-*This documentation is regularly updated. Last updated: January 2024*
