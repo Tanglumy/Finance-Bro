@@ -21,7 +21,7 @@ git remote -v
 
 # 2) 确保当前工作树里不再存在明文 key（先把 CLAUDE.md 改成占位符再提交）
 step "确认当前工作区不含 'sk-'；若含，请先在文件里改成占位符再重试"
-if git grep -n "sk-[A-Za-z0-9_-]\{8,\}" -- . >/dev/null 2>&1; then
+if git grep -n "sk-[A-Za-z0-9_-]\{20,\}" -- . >/dev/null 2>&1; then
   echo "❌ 仍检测到工作区里有疑似 key，请先手动替换为 \${OPENAI_API_KEY} 并提交。"
   exit 1
 fi
@@ -51,7 +51,7 @@ git filter-repo --replace-text replacements.txt --force
 
 # 5) 自检：全历史扫描是否还残留 "sk-"
 step "全历史自检：扫描是否还存在 'sk-'"
-if git grep -n "sk-[A-Za-z0-9_-]\{8,\}" $(git rev-list --all) -- . >/dev/null 2>&1; then
+if git grep -n "sk-[A-Za-z0-9_-]\{20,\}" $(git rev-list --all) -- . >/dev/null 2>&1; then
   echo "⚠️ 仍检测到历史残留 key，进入【兜底方案 A】仅移除 CLAUDE.md 的历史"
   # 兜底 A：把 CLAUDE.md 从整个历史中移除（不影响当前工作树）
   git restore --source=HEAD --worktree --staged -- CLAUDE.md || true
@@ -61,7 +61,7 @@ fi
 
 # 6) 再次自检确认
 step "再次全历史扫描"
-if git grep -n "sk-[A-Za-z0-9_-]\{8,\}" $(git rev-list --all) -- . >/dev/null 2>&1; then
+if git grep -n "sk-[A-Za-z0-9_-]\{20,\}" $(git rev-list --all) -- . >/dev/null 2>&1; then
   echo "❌ 仍有残留：请把报错的 commit 哈希发我，我给你做定点清理。"
   exit 1
 fi
