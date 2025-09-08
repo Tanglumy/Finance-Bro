@@ -14,6 +14,14 @@ import os
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage
 
+# Import our research report generator
+try:
+    from research_report_generator import DeepResearchReportGenerator
+    RESEARCH_GENERATOR_AVAILABLE = True
+except ImportError:
+    logger.warning("Research report generator not available")
+    RESEARCH_GENERATOR_AVAILABLE = False
+
 # Load environment variables
 from dotenv import load_dotenv
 load_dotenv()
@@ -51,6 +59,23 @@ class PortfolioSummary(BaseModel):
     positions_count: int
     daily_change: float
     daily_change_percent: float
+
+class ResearchRequest(BaseModel):
+    symbol: str = Field(..., description="Stock symbol to research")
+    report_type: str = Field(default="comprehensive", description="Type of report to generate")
+
+class ResearchResponse(BaseModel):
+    symbol: str
+    company_name: str
+    analyst_rating: str
+    price_target: float
+    current_price: float
+    upside_potential: float
+    investment_highlights: str
+    full_report: str
+    key_metrics: Dict[str, Any]
+    report_date: str
+    word_count: int
 
 # Create FastAPI app
 app = FastAPI(
@@ -411,6 +436,51 @@ async def get_market_sentiment():
         }
     except Exception as e:
         logger.error(f"Market sentiment error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Research APIs
+@app.post("/research/generate", response_model=ResearchResponse)
+async def generate_research_report(request: ResearchRequest):
+    """Generate a comprehensive research report for a stock symbol."""
+    try:
+        if not RESEARCH_GENERATOR_AVAILABLE:
+            raise HTTPException(status_code=503, detail="Research report generator not available")
+        
+        generator = DeepResearchReportGenerator()
+        
+        # Generate the research report
+        report = await generator.generate_research_report(
+            symbol=request.symbol.upper(),
+            report_type=request.report_type
+        )
+        
+        return ResearchResponse(**report)
+        
+    except Exception as e:
+        logger.error(f"Research report generation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/research/symbols")
+async def get_available_research_symbols():
+    """Get list of symbols available for research."""
+    try:
+        # Popular stocks for research
+        symbols = {
+            "Large Cap Tech": ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA"],
+            "Finance": ["JPM", "BAC", "WFC", "GS", "MS", "C", "BRK.B"],
+            "Healthcare": ["JNJ", "PFE", "UNH", "MRK", "ABBV", "TMO", "ABT"],
+            "Consumer": ["WMT", "PG", "KO", "PEP", "NKE", "MCD", "HD"],
+            "Industrial": ["BA", "CAT", "GE", "HON", "MMM", "UPS", "RTX"]
+        }
+        
+        return {
+            "available_sectors": list(symbols.keys()),
+            "symbols_by_sector": symbols,
+            "total_symbols": sum(len(syms) for syms in symbols.values())
+        }
+        
+    except Exception as e:
+        logger.error(f"Available symbols error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # News APIs
@@ -911,4 +981,4 @@ async def update_learning_mode(mode: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8002)
+    uvicorn.run(app, host="0.0.0.0", port=8003)

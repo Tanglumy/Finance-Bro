@@ -1,0 +1,42 @@
+{
+  "summary": {
+    "total_agents_tested": 5,
+    "successful_tests": 0,
+    "failed_tests": 5,
+    "success_rate": "0.0%",
+    "test_duration": "10.08 seconds",
+    "api_key_configured": true,
+    "model_used": "gpt-5"
+  },
+  "detailed_results": {
+    "EventAgent": {
+      "status": "error",
+      "error": "EventAgent test failed: No module named 'EventAgent'"
+    },
+    "Research_Agent": {
+      "status": "error",
+      "error": "Research_Agent test failed: No module named 'agent'"
+    },
+    "ts_agent": {
+      "status": "error",
+      "error": "ts_agent test failed: name 'EWrapper' is not defined"
+    },
+    "formula_engine": {
+      "status": "error",
+      "error": "formula_engine test failed: cannot import name 'Backtester' from 'src.formula_engine.backtester' (/Users/bytedance/Desktop/Finance-Bro/backend/src/formula_engine/backtester.py)"
+    },
+    "reward_agent": {
+      "status": "error",
+      "error": "reward_agent test failed: cannot import name 'LearningAgent' from 'src.reward_agent.learning_agent' (/Users/bytedance/Desktop/Finance-Bro/backend/src/reward_agent/learning_agent.py)"
+    }
+  },
+  "errors": [
+    "EventAgent test failed: No module named 'EventAgent'",
+    "Research_Agent test failed: No module named 'agent'",
+    "ts_agent test failed: name 'EWrapper' is not defined",
+    "formula_engine test failed: cannot import name 'Backtester' from 'src.formula_engine.backtester' (/Users/bytedance/Desktop/Finance-Bro/backend/src/formula_engine/backtester.py)",
+    "reward_agent test failed: cannot import name 'LearningAgent' from 'src.reward_agent.learning_agent' (/Users/bytedance/Desktop/Finance-Bro/backend/src/reward_agent/learning_agent.py)"
+  ],
+  "test_duration_seconds": 10.077127,
+  "timestamp": "2025-09-08T13:32:15.748746"
+}

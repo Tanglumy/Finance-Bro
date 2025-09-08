@@ -1,29 +1,41 @@
 import os
+import sys
 from pydantic import BaseModel, Field
 from typing import Any, Optional
 
 from langchain_core.runnables import RunnableConfig
 
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import config as app_config
+
 
 class Configuration(BaseModel):
     """The configuration for the agent."""
 
+    openai_api_key: str = Field(
+        default=app_config.OPENAI_API_KEY or "",
+        metadata={
+            "description": "OpenAI API key for model access."
+        },
+    )
+
     query_generator_model: str = Field(
-        default="gemini-2.0-flash",
+        default="gpt-5",
         metadata={
             "description": "The name of the language model to use for the agent's query generation."
         },
     )
 
     reflection_model: str = Field(
-        default="gemini-2.5-flash-preview-04-17",
+        default="gpt-5",
         metadata={
             "description": "The name of the language model to use for the agent's reflection."
         },
     )
 
     answer_model: str = Field(
-        default="gemini-2.5-pro-preview-05-06",
+        default="gpt-5",
         metadata={
             "description": "The name of the language model to use for the agent's answer."
         },

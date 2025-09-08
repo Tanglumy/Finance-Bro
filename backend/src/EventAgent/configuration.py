@@ -1,36 +1,48 @@
 import os
+import sys
 from pydantic import BaseModel, Field
 from typing import Any, Optional, List
 
 from langchain_core.runnables import RunnableConfig
 
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import config as app_config
+
 
 class EventAgentConfiguration(BaseModel):
     """The configuration for the Event Agent."""
 
+    openai_api_key: str = Field(
+        default=app_config.OPENAI_API_KEY or "",
+        metadata={
+            "description": "OpenAI API key for model access."
+        },
+    )
+
     event_detection_model: str = Field(
-        default="gemini-2.0-flash",
+        default="gpt-5",
         metadata={
             "description": "The name of the language model to use for event detection."
         },
     )
 
     signal_generation_model: str = Field(
-        default="gemini-2.5-flash-preview-04-17",
+        default="gpt-5",
         metadata={
             "description": "The name of the language model to use for signal generation."
         },
     )
 
     portfolio_analysis_model: str = Field(
-        default="gemini-2.5-pro-preview-05-06",
+        default="gpt-5",
         metadata={
             "description": "The name of the language model to use for portfolio analysis."
         },
     )
 
     reasoning_model: str = Field(
-        default="gemini-2.5-pro-preview-05-06",
+        default="gpt-5",
         metadata={
             "description": "The name of the language model to use for investment reasoning."
         },
