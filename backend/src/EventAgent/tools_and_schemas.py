@@ -645,6 +645,83 @@ async def update_risk_parameters(
     }
 
 
+@tool
+async def generate_formula_based_signals(
+    market_data: Dict[str, Any],
+    portfolio_context: Dict[str, Any],
+    formula_names: Optional[List[str]] = None,
+    symbols: Optional[List[str]] = None
+) -> List[Dict[str, Any]]:
+    """
+    Generate trading signals using formula-based strategies.
+    
+    Args:
+        market_data: Current market data (prices, indicators, etc.)
+        portfolio_context: Portfolio information for position sizing
+        formula_names: List of formula names to evaluate (None = all active)
+        symbols: List of symbols to evaluate (None = all available)
+    
+    Returns:
+        List of trading signals from formula evaluation
+    """
+    from EventAgent.formula_handler import get_formula_handler
+    from EventAgent.strategy_manager import get_strategy_manager
+    
+    try:
+        formula_handler = get_formula_handler()
+        strategy_manager = get_strategy_manager()
+        
+        signals = []
+        
+        # If specific formulas provided, evaluate those
+        if formula_names:
+            for formula_name in formula_names:
+                try:
+                    formula_signals = await formula_handler.evaluate_formula_strategy(
+                        formula_name,
+                        market_data,
+                        portfolio_context,
+                        symbols
+                    )
+                    signals.extend(formula_signals)
+                except Exception as e:
+                    logger.error(f"Error evaluating formula {formula_name}: {e}")
+        else:
+            # Evaluate all active formula strategies
+            active_strategies = strategy_manager.get_active_strategies()
+            
+            for strategy in active_strategies:
+                try:
+                    strategy_symbols = strategy.symbols if strategy.symbols else symbols
+                    
+                    formula_signals = await formula_handler.evaluate_formula_strategy(
+                        strategy.formula_model_name,
+                        market_data,
+                        portfolio_context,
+                        strategy_symbols
+                    )
+                    
+                    # Record signal generation
+                    for signal in formula_signals:
+                        strategy_manager.record_signal(
+                            strategy.strategy_id,
+                            signal.to_dict()
+                        )
+                    
+                    signals.extend(formula_signals)
+                    
+                except Exception as e:
+                    logger.error(f"Error with strategy {strategy.name}: {e}")
+                    strategy_manager.record_error(strategy.strategy_id, str(e))
+        
+        # Convert signals to dictionary format
+        return [signal.to_dict() for signal in signals]
+        
+    except Exception as e:
+        logger.error(f"Error generating formula-based signals: {e}")
+        return []
+
+
 # Export all tools for easy import
 FINANCIAL_TOOLS = [
     get_stock_price,
@@ -661,4 +738,5 @@ FINANCIAL_TOOLS = [
     get_trading_status,
     emergency_trading_stop,
     update_risk_parameters,
+    generate_formula_based_signals,
 ]

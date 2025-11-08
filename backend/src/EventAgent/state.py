@@ -20,13 +20,15 @@ class EventAgentState(TypedDict):
     research_queries: Annotated[list, operator.add]
     research_results: Annotated[list, operator.add]
     sources_gathered: Annotated[list, operator.add]
+    formula_signals: Annotated[list, operator.add]  # Formula-based signals
+    formula_evaluations: Annotated[list, operator.add]  # Formula evaluation results
+    active_formulas: List[str]  # List of active formula names
     event_loop_count: int
     max_event_loops: int
     reasoning_model: str
     current_portfolio: Dict[str, Any]
     risk_tolerance: str
     investment_horizon: str
-
 
 class EventDetectionState(TypedDict):
     detected_events: List[Dict[str, Any]]

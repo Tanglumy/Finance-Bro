@@ -1,11 +1,14 @@
 from typing import Dict, Any, List
 import json
+import logging
 from datetime import datetime
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode
+
+logger = logging.getLogger(__name__)
 
 from EventAgent.state import (
     EventAgentState,
@@ -36,6 +39,7 @@ def create_event_agent_graph():
     # Add nodes
     graph.add_node("detect_events", detect_market_events)
     graph.add_node("analyze_portfolio", analyze_portfolio_state)
+    graph.add_node("evaluate_formulas", evaluate_formula_strategies)
     graph.add_node("generate_signals", generate_trading_signals)
     graph.add_node("investment_reasoning", provide_investment_reasoning)
     graph.add_node("tools", tool_node)
@@ -43,7 +47,8 @@ def create_event_agent_graph():
     # Add edges
     graph.add_edge(START, "detect_events")
     graph.add_edge("detect_events", "analyze_portfolio")
-    graph.add_edge("analyze_portfolio", "generate_signals")
+    graph.add_edge("analyze_portfolio", "evaluate_formulas")
+    graph.add_edge("evaluate_formulas", "generate_signals")
     graph.add_edge("generate_signals", "investment_reasoning")
     graph.add_edge("investment_reasoning", END)
     
@@ -62,13 +67,88 @@ def create_event_agent_graph():
         should_use_tools,
         {
             "tools": "tools",
-            "continue": "generate_signals"
+            "continue": "evaluate_formulas"
         }
     )
     
-    graph.add_edge("tools", "generate_signals")
+    graph.add_edge("tools", "evaluate_formulas")
     
     return graph.compile()
+
+
+def evaluate_formula_strategies(state: EventAgentState, config: Dict[str, Any]) -> EventAgentState:
+    """Evaluate formula-based trading strategies."""
+    from EventAgent.formula_handler import get_formula_handler
+    from EventAgent.strategy_manager import get_strategy_manager
+    
+    try:
+        formula_handler = get_formula_handler()
+        strategy_manager = get_strategy_manager()
+        
+        # Get market data from state
+        market_data = {
+            "prices": {},
+            "indicators": {},
+            "events": state.get("market_events", [])
+        }
+        
+        # Extract portfolio context
+        portfolio_context = state.get("current_portfolio", {})
+        
+        # Get active strategies
+        active_strategies = strategy_manager.get_active_strategies()
+        
+        if not active_strategies:
+            logger.info("No active formula strategies found")
+            return state
+        
+        # Evaluate all active formulas
+        formula_signals = []
+        formula_evaluations = []
+        
+        for strategy in active_strategies:
+            try:
+                signals = formula_handler.evaluate_formula_strategy(
+                    strategy.formula_model_name,
+                    market_data,
+                    portfolio_context,
+                    strategy.symbols
+                )
+                
+                # Record evaluation
+                evaluation_record = {
+                    "strategy_id": strategy.strategy_id,
+                    "strategy_name": strategy.name,
+                    "formula_name": strategy.formula_model_name,
+                    "signals_generated": len(signals),
+                    "timestamp": datetime.now().isoformat()
+                }
+                formula_evaluations.append(evaluation_record)
+                
+                # Record signals with strategy manager
+                for signal in signals:
+                    strategy_manager.record_signal(
+                        strategy.strategy_id,
+                        signal.to_dict()
+                    )
+                    formula_signals.append(signal.to_dict())
+                
+                logger.info(f"Strategy {strategy.name} generated {len(signals)} signals")
+                
+            except Exception as e:
+                logger.error(f"Error evaluating strategy {strategy.name}: {e}")
+                strategy_manager.record_error(strategy.strategy_id, str(e))
+        
+        # Update state with formula signals
+        state["formula_signals"].extend(formula_signals)
+        state["formula_evaluations"].extend(formula_evaluations)
+        
+        logger.info(f"Total formula signals generated: {len(formula_signals)}")
+        
+    except Exception as e:
+        logger.error(f"Error in evaluate_formula_strategies: {e}")
+    
+    return state
 
 
 def detect_market_events(state: EventAgentState, config: Dict[str, Any]) -> EventAgentState:
@@ -156,6 +236,9 @@ def generate_trading_signals(state: EventAgentState, config: Dict[str, Any]) -> 
         temperature=0.1
     )
     
+    # Get formula signals from state
+    formula_signals = state.get("formula_signals", [])
+    
     # Prepare signal generation prompt
     prompt = SIGNAL_GENERATION_PROMPT.format(
         event_analysis=json.dumps(state.get("market_events", [])),
@@ -165,6 +248,12 @@ def generate_trading_signals(state: EventAgentState, config: Dict[str, Any]) -> 
         risk_tolerance=state.get("risk_tolerance", "moderate")
     )
     
+    # Add formula signals context to prompt
+    if formula_signals:
+        formula_context = f"\n\nFormula-Based Signals ({len(formula_signals)} signals):\n"
+        formula_context += json.dumps(formula_signals, indent=2)
+        prompt += formula_context
+    
     # Generate trading signals
     messages = [SystemMessage(content=prompt)]
     response = llm.invoke(messages)
@@ -172,11 +261,23 @@ def generate_trading_signals(state: EventAgentState, config: Dict[str, Any]) -> 
     # Parse and store signals
     try:
         signal_data = json.loads(response.content)
-        trading_signals = signal_data.get("signals", [])
+        llm_signals = signal_data.get("signals", [])
     except json.JSONDecodeError:
-        trading_signals = []
+        llm_signals = []
     
-    state["financial_signals"].extend(trading_signals)
+    # Combine formula signals with LLM signals
+    all_signals = formula_signals + llm_signals
+    
+    # Mark signal sources
+    for signal in all_signals:
+        if "formula_name" in signal:
+            signal["source"] = "formula_engine"
+        elif signal not in formula_signals:
+            signal["source"] = "llm_analysis"
+    
+    state["financial_signals"].extend(all_signals)
+    
+    logger.info(f"Generated {len(llm_signals)} LLM signals, {len(formula_signals)} formula signals")
     
     return state
 
@@ -238,11 +339,13 @@ def route_to_research_agent(state: EventAgentState) -> bool:
 
 
 # Utility functions for integration
+# Utility functions for integration
 def initialize_event_agent_state(
     user_message: str,
     portfolio_data: Dict[str, Any] = None,
     risk_tolerance: str = "moderate",
-    investment_horizon: str = "medium"
+    investment_horizon: str = "medium",
+    active_formulas: List[str] = None
 ) -> EventAgentState:
     """Initialize the EventAgent state with user input and context."""
     return {
@@ -253,6 +356,9 @@ def initialize_event_agent_state(
         "research_queries": [],
         "research_results": [],
         "sources_gathered": [],
+        "formula_signals": [],
+        "formula_evaluations": [],
+        "active_formulas": active_formulas or [],
         "event_loop_count": 0,
         "max_event_loops": 3,
         "reasoning_model": "gemini-2.5-pro-preview-05-06",
